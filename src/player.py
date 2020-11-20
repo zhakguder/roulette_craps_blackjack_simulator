@@ -25,7 +25,8 @@ class Player:
         return True
 
     def place_bets(self):
-        self.rounds_to_go -= 1
+        # self.rounds_to_go -= 1
+        pass
 
     def win(self, bet):
         """Updates the user stake with the amount won from bet."""
@@ -39,9 +40,33 @@ class Player:
         """Sets the initial stake"""
         self.stake = init_stake
 
-    def set_rounds(self, init_rounds):
-        """Sets the inital round"""
-        self.rounds_to_go = init_rounds
+    def set_rounds(self, rounds):
+        """Sets the number of rounds"""
+        self.rounds_to_go = rounds
+
+    def winners(self, outcomes):
+        pass
+
+
+class Passenger57(Player):
+    def __init__(self, a_table):
+        super().__init__(a_table)
+
+    def place_bets(self):
+        super().place_bets()
+        bet_amount = 10
+        if self.stake >= bet_amount:
+            self.table.place_bet(Bet(black, bet_amount))
+            self.stake -= bet_amount
+
+    def win(self, bet):
+        super().win(bet)
+
+    def lose(self, bet):
+        pass
+
+    def playing(self):
+        return True
 
 
 class MartingalePlayer(Player):
@@ -82,26 +107,30 @@ class MartingalePlayer(Player):
         return self.stake >= self.bet_multiple * self.base_bet and self.rounds_to_go > 0
 
 
-class Passenger57(Player):
+class SevenRedsPlayer(MartingalePlayer):
+    """A MartingalePlayer who waits until the wheel has spun red seven times in a
+    row before betting black. Attrs: red_count (int): Starts at 7, resets to 7
+    on each non-red outcome, decrements by 1 on each red outcome.
+    """
+
     def __init__(self, a_table):
         super().__init__(a_table)
+        self.red_count = 7
 
     def place_bets(self):
-        super().place_bets()
-        bet_amount = 10
-        if self.stake >= bet_amount:
-            self.table.place_bet(Bet(black, bet_amount))
-            self.stake -= bet_amount
+        """After 7 reds are spun in a row, places a bet on black."""
+        if self.red_count == 0:
+            super().place_bets()
 
-    def win(self, bet):
-        super().win(bet)
+    def winners(self, outcomes):
+        """Notification from the game of all the winning outcomes. If this vector
+        includes red, red_count is decremented. Otherwise, red_count is reset to 0.
+        Args:
+            outcomes (Bin): Winning bin containing outcomes
+        """
+        includes_red = sum(map(lambda x: x.name == "Red", outcomes.outcomes)) > 0
 
-    def lose(self, bet):
-        pass
-
-    def playing(self):
-        return True
-
-
-class SevenReds(Player):
-    pass
+        if includes_red:
+            self.red_count -= 1
+        else:
+            self.red_count = 7

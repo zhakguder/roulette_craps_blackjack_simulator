@@ -19,7 +19,7 @@ class Simulator:
     def __init__(self, game, player):
         self.game = game
         self.player = player
-        self.init_duration = 250
+        self.init_duration = 25000
         self.init_stake = 100
         self.samples = 50
         self.durations = []
