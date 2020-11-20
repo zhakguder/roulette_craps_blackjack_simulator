@@ -49,18 +49,21 @@ class MartingalePlayer(Player):
         Attrs:
             loss_count (int): Number of losses of the player
             bet_multiple (int): Multiplier for the bet. It is 2^(loss_count)
+            base_bet (int): lowest bet the player makes
     """
 
     def __init__(self, a_table):
         super().__init__(a_table)
         self.loss_count = 0
         self.bet_multiple = 1
+        self.base_bet = a_table.min_limit
 
     def place_bets(self):
         """Updates the table with a bet on black. The amount bet is bet_multiple"""
         super().place_bets()
-        self.table.place_bet(Bet(black, self.bet_multiple))
-        self.stake -= self.bet_multiple
+        bet_amount = self.base_bet * self.bet_multiple
+        self.table.place_bet(Bet(black, bet_amount))
+        self.stake -= bet_amount
 
     def win(self, bet):
         """
@@ -76,7 +79,7 @@ class MartingalePlayer(Player):
         self.bet_multiple *= 2
 
     def playing(self):
-        return self.stake >= self.bet_multiple and self.rounds_to_go > 0
+        return self.stake >= self.bet_multiple * self.base_bet and self.rounds_to_go > 0
 
 
 class Passenger57(Player):
@@ -98,3 +101,7 @@ class Passenger57(Player):
 
     def playing(self):
         return True
+
+
+class SevenReds(Player):
+    pass

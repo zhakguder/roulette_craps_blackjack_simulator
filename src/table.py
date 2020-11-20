@@ -9,13 +9,18 @@ class Table:
     """
 
     def __init__(self, limit):
-        self.limit = limit
+
+        self.min_limit = 10
+        self.max_limit = limit
         self.bets = []
 
     def is_valid(self, bet):
-        """If the sum of all bets is less than or equal to the table limit,the bet is valid."""
+        """If the bet meets the table minimum and the sum of all bets is less than or
+equal to the table limit,the bet is valid."""
         return (
-            sum([x.lose_amount() for x in self.bets]) + bet.lose_amount() <= self.limit
+            bet.lose_amount() >= self.min_limit
+            and sum([x.lose_amount() for x in self.bets]) + bet.lose_amount()
+            <= self.max_limit
         )
 
     def place_bet(self, bet):
