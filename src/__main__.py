@@ -13,6 +13,13 @@ table = Table(1000)
 game = Game(wheel, table)
 player = SevenRedsPlayer(table)
 simulator = Simulator(game, player)
+
+# possible_outcomes = []
+# for bin in wheel.bin_iterator():
+#     for outcome in bin:
+#         possible_outcomes.append(outcome)
+# self.player.set_possible_outcomes(possible_outcomes)
+
 simulator.gather()
 print(simulator.durations)
 print(simulator.maxima)

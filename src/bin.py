@@ -14,3 +14,6 @@ that are paid for a particular bin on a Roulette wheel."""
 
     def __str__(self):
         return ", ".join(map(str, self.outcomes))
+
+    def __iter__(self):
+        return iter(self.outcomes)

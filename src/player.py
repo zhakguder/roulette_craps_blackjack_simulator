@@ -47,17 +47,21 @@ class Player:
     def winners(self, outcomes):
         pass
 
+    def can_place_bet(self, amount):
+        return self.stake >= amount
+
 
 class Passenger57(Player):
     def __init__(self, a_table):
         super().__init__(a_table)
 
     def place_bets(self):
-        super().place_bets()
         bet_amount = 10
-        if self.stake >= bet_amount:
-            self.table.place_bet(Bet(black, bet_amount))
-            self.stake -= bet_amount
+        if not self.can_place_bet(bet_amount):
+            return
+
+        self.table.place_bet(Bet(black, bet_amount))
+        self.stake -= bet_amount
 
     def win(self, bet):
         super().win(bet)
@@ -85,8 +89,10 @@ class MartingalePlayer(Player):
 
     def place_bets(self):
         """Updates the table with a bet on black. The amount bet is bet_multiple"""
-        super().place_bets()
+
         bet_amount = self.base_bet * self.bet_multiple
+        if not self.can_place_bet(bet_amount):
+            return
         self.table.place_bet(Bet(black, bet_amount))
         self.stake -= bet_amount
 
@@ -119,6 +125,7 @@ class SevenRedsPlayer(MartingalePlayer):
 
     def place_bets(self):
         """After 7 reds are spun in a row, places a bet on black."""
+
         if self.red_count == 0:
             super().place_bets()
 
@@ -134,3 +141,34 @@ class SevenRedsPlayer(MartingalePlayer):
             self.red_count -= 1
         else:
             self.red_count = 7
+
+
+class RandomPlayer(Player):
+    """RandomPlayer is a player who places bets in Roulette. This player makes random bets around the layout.
+
+        Args:
+            a_table (Table): The table the player will playing on.
+
+        Attrs:
+            rng (Random): A random number generator to generate the next random number.
+    """
+
+    def __init__(self, a_table, a_generator):
+        super().__init__(a_table)
+        self.rng = a_generator
+
+    def set_possible_outcomes(self, outcomes):
+        self.possible_outcomes = outcomes
+
+    def _next_bet(self):
+        return self.rng.choice(self.possible_outcomes)
+
+    def place_bets(self):
+        """Place a randomly selected bet from all possible outcomes and a fixed bet amount."""
+        bet_amount = 10
+        if not self.can_place_bet(bet_amount):
+            return
+        outcome = self._next_bet()
+        self.table.place_bet(Bet(outcome, bet_amount))
+        self.stake -= bet_amount
+        return outcome

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest
-from src.player import MartingalePlayer, SevenRedsPlayer
+from src.player import MartingalePlayer, SevenRedsPlayer, RandomPlayer
 from src.game import Game
 from src.wheel import Wheel
 from src.table import Table
@@ -71,3 +71,27 @@ class TestSevenRedsPlayer(unittest.TestCase):
             for j in range(3):
                 self.player.lose(Bet(Outcome("Black", 1), self.player.bet_multiple))
                 print(self.player.bet_multiple)
+
+
+class TestRandomPlayer(unittest.TestCase):
+    def setUp(self):
+        table = Table(100)
+        rng_wheel = NonRandom()
+        wheel = Wheel(rng_wheel)
+        rng_player = NonRandom()
+        self.initial_player_stake = 1000
+        self.table = table
+        self.game = Game(wheel, table)
+        self.player = RandomPlayer(table, rng_player)
+        self.player.stake = self.initial_player_stake
+        self.player.rounds_to_go = 10
+        possible_outcomes = []
+        for bin in wheel.bin_iterator():
+            for outcome in bin:
+                possible_outcomes.append(outcome)
+        self.player.set_possible_outcomes(possible_outcomes)
+
+    def test_random_player(self):
+        for i in range(100):
+            outcome = self.player._next_bet()
+            print(outcome)
