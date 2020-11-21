@@ -25,3 +25,6 @@ class Wheel:
         """Sets the bin in a_bin position in the bins collection"""
         # if not self.bins[a_bin]:
         self.bins[a_bin] = bin
+
+    def bin_iterator(self):
+        return iter(self.bins)
