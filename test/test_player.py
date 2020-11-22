@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest
-from src.player import MartingalePlayer, SevenRedsPlayer, RandomPlayer
+from src.player import MartingalePlayer, SevenRedsPlayer, RandomPlayer, Player1326
 from src.game import Game
 from src.wheel import Wheel
 from src.table import Table
@@ -93,5 +93,30 @@ class TestRandomPlayer(unittest.TestCase):
 
     def test_random_player(self):
         for i in range(100):
-            outcome = self.player._next_bet()
+            outcome = self.player._next_outcome()
             print(outcome)
+
+
+class TestPlayer1326(unittest.TestCase):
+    def setUp(self):
+        table = Table(100)
+        rng_wheel = NonRandom()
+        wheel = Wheel(rng_wheel)
+        self.initial_player_stake = 1000
+        self.table = table
+        self.game = Game(wheel, table)
+        self.player = Player1326(table)
+        self.player.stake = self.initial_player_stake
+        self.player.rounds_to_go = 1
+        self.outcomes = [Outcome("Black", 1), Outcome("Red", 1)]
+
+    def test_player_states(self):
+        bet_amount = 10
+        self.player.win(Bet(self.outcomes[0], bet_amount))
+        print(self.player.state)
+        self.player.win(Bet(self.outcomes[1], bet_amount))
+        print(self.player.state)
+        self.player.win(Bet(self.outcomes[1], bet_amount))
+        print(self.player.state)
+        self.player.win(Bet(self.outcomes[1], bet_amount))
+        print(self.player.state)

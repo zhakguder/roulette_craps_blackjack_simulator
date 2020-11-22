@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 
 from src.game import Game
-from src.player import MartingalePlayer, SevenRedsPlayer
+from src.player import MartingalePlayer, SevenRedsPlayer, Player1326
 from src.simulator import Simulator
 from src.table import Table
 from src.wheel import Wheel
 
 from test.non_random import NonRandom
 
+chosen_player = Player1326
+
+
 wheel = Wheel()
 table = Table(1000)
 game = Game(wheel, table)
-player = SevenRedsPlayer(table)
+player = chosen_player(table)
 simulator = Simulator(game, player)
 
 # possible_outcomes = []

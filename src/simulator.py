@@ -19,7 +19,7 @@ class Simulator:
     def __init__(self, game, player):
         self.game = game
         self.player = player
-        self.init_duration = 25000
+        self.init_duration = 250
         self.init_stake = 100
         self.samples = 50
         self.durations = []
@@ -38,7 +38,7 @@ class Simulator:
         while self.player.playing():
             self.game.cycle(self.player)
             stake_values.append(self.player.stake)
-        self.player.bet_multiple = 1
+        self.player.reset()
         return stake_values
 
     def gather(self):

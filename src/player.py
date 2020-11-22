@@ -3,7 +3,12 @@ from src.outcome import Outcome
 from src.bet import Bet
 from math import pow
 
-black = Outcome("Black", 1)
+from src.player_states import (
+    Player1326NoWins,
+    Player1326OneWin,
+    Player1326TwoWins,
+    Player1326ThreeWins,
+)
 
 
 class Player:
@@ -19,6 +24,7 @@ class Player:
         self.table = a_table
         self.stake = None
         self.rounds_to_go = None
+        self.base_bet = a_table.min_limit
 
     def playing(self):
         """Returns True while the player is active"""
@@ -50,13 +56,16 @@ class Player:
     def can_place_bet(self, amount):
         return self.stake >= amount
 
+    def reset(self):
+        self.bet_multiple = 1
+
 
 class Passenger57(Player):
     def __init__(self, a_table):
         super().__init__(a_table)
 
     def place_bets(self):
-        bet_amount = 10
+        bet_amount = self.base_bet
         if not self.can_place_bet(bet_amount):
             return
 
@@ -81,11 +90,12 @@ class MartingalePlayer(Player):
             base_bet (int): lowest bet the player makes
     """
 
+    outcome = Outcome("Black", 1)
+
     def __init__(self, a_table):
         super().__init__(a_table)
         self.loss_count = 0
         self.bet_multiple = 1
-        self.base_bet = a_table.min_limit
 
     def place_bets(self):
         """Updates the table with a bet on black. The amount bet is bet_multiple"""
@@ -93,7 +103,7 @@ class MartingalePlayer(Player):
         bet_amount = self.base_bet * self.bet_multiple
         if not self.can_place_bet(bet_amount):
             return
-        self.table.place_bet(Bet(black, bet_amount))
+        self.table.place_bet(Bet(MartingalePlayer.outcome, bet_amount))
         self.stake -= bet_amount
 
     def win(self, bet):
@@ -160,15 +170,56 @@ class RandomPlayer(Player):
     def set_possible_outcomes(self, outcomes):
         self.possible_outcomes = outcomes
 
-    def _next_bet(self):
+    def _next_outcome(self):
         return self.rng.choice(self.possible_outcomes)
 
     def place_bets(self):
         """Place a randomly selected bet from all possible outcomes and a fixed bet amount."""
-        bet_amount = 10
+        bet_amount = self.base_bet
         if not self.can_place_bet(bet_amount):
             return
-        outcome = self._next_bet()
+        outcome = self._next_outcome()
         self.table.place_bet(Bet(outcome, bet_amount))
         self.stake -= bet_amount
         return outcome
+
+
+class Player1326(Player):
+    """Player1326 follows the 1-3-2-6 betting system. The player has a preferred
+    Outcome, can be any even money bet. The player also has a current betting state
+    that determines the current bet to place, and what next state applies when the bet has won or lost.
+
+    Attrs: state (Player1326State): Current state of the 1-3-2-6 betting system.
+        It can be one of Player1326NoWins, Player1326OneWin, Player1326TwoWins,
+        Player1326ThreeWins
+    """
+
+    def __init__(self, a_table):
+        super().__init__(a_table)
+        self.state = Player1326NoWins(self)
+        self.outcome = Outcome("Black", 1)
+
+    def place_bets(self):
+        """Updates the table with a bet created by the current state. This method
+        delegates the bet creation to the current state."""
+        bet = self.state.current_bet()
+        if not self.stake >= bet.amount:
+            return False
+        self.table.place_bet(bet)
+        self.stake -= bet.amount
+
+    def win(self, bet):
+        """Superclass method updates the player's stake with the amount won. User's state is updated."""
+        super().win(bet)
+        self.state = self.state.next_won()
+
+    def lose(self, bet):
+        """User's state is updated."""
+        self.state = self.state.next_loss()
+
+    def playing(self):
+        bet = self.state.current_bet()
+        return self.stake >= bet.amount and self.rounds_to_go > 0
+
+    def reset(self):
+        self.state = Player1326NoWins(self)
