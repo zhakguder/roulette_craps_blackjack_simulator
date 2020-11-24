@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 from src.game import Game
-from src.player import MartingalePlayer, SevenRedsPlayer, Player1326
+from src.player import MartingalePlayer, SevenRedsPlayer, Player1326, PlayerFibonacci
 from src.simulator import Simulator
 from src.table import Table
 from src.wheel import Wheel
 
 from test.non_random import NonRandom
 
-chosen_player = Player1326
+chosen_player = PlayerFibonacci
 
 
 wheel = Wheel()

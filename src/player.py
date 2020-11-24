@@ -223,3 +223,102 @@ class Player1326(Player):
 
     def reset(self):
         self.state = Player1326NoWins(self)
+
+
+class PlayerCancellation(Player):
+    """PlayerCancellation usese the cancellation betting system. Bets on even money
+    Outcomes. This implementation uses Black.
+
+    Attrs:
+
+        sequence (list): Keeps the bet amounts. Wins are removed from this
+        list and losses are appended to this list. The current bet is the first
+        value plus the last value.
+
+        outcome (Outcome): This is the player's preferred outcome.
+    """
+
+    def __init__(self, a_table):
+        super().__init__(a_table)
+        self.outcome = Outcome("Black", 1)
+        self.reset()
+
+    def reset(self):
+        """Puts the list of first six integers into the sequence variable"""
+        self.sequence = list(range(1, 7))
+
+    def place_bets(self):
+        """Creates a bet from the sum of the first and last values of sequence. The
+        first value is at index 0."""
+        bet_amount = self.bet_amount()
+        bet = Bet(self.outcome, bet_amount)
+        if not self.stake >= bet.amount:
+            return False
+        self.table.place_bet(bet)
+        self.stake -= bet.amount
+
+    def bet_amount(self):
+        return self.base_bet * (self.sequence[0] + self.sequence[-1])
+
+    def win(self, bet):
+        """Updates the player stake with the amount won. Removes the first and the last
+        number from the sequence."""
+        super().win(bet)
+        self.sequence = self.sequence[1:-1]
+
+    def lose(self, bet):
+        """Appends the sum of the first and list elements of sequence to the end of sequence as a new integer."""
+        last_entry = self.sequence[0] + self.sequence[-1]
+        self.sequence.append(last_entry)
+
+    def playing(self):
+        """Player keeps playing until the sequence is empty or he doesn't have enough
+        money or no more rounds left to go in the game."""
+        if not self.sequence:
+            return False
+        return self.stake >= self.bet_amount() and self.rounds_to_go > 0
+
+
+class PlayerFibonacci(Player):
+    """This player uses the Fibonacci sequence to structure a series of bets in a kind of cancellation system.
+        Attrs:
+            recent (int): The most recent bet multiplier
+            previoius (int): The bet multiplier previous to the most recent bet amount
+    """
+
+    def __init__(self, a_table):
+        super().__init__(a_table)
+        self.reset()
+        self.outcome = Outcome("Black", 1)
+
+    def place_bets(self):
+        """Creates a bet from the sum of the first and last values of sequence. The
+        first value is at index 0."""
+        bet_amount = self.bet_amount()
+        bet = Bet(self.outcome, bet_amount)
+
+        self.table.place_bet(bet)
+        self.stake -= bet.amount
+
+    def bet_amount(self):
+        return self.base_bet * (self.previous + self.recent)
+
+    def win(self, bet):
+        super().win(bet)
+        if self.previous == 0:
+            return
+        new_previous = self.recent - self.previous
+        self.recent = self.previous
+        self.previous = new_previous
+
+    def lose(self, bet):
+        new_recent = self.recent + self.previous
+        self.previous = self.recent
+        self.recent = new_recent
+
+    def playing(self):
+        return self.stake >= self.bet_amount() and self.rounds_to_go > 0
+
+    def reset(self):
+        self.recent = 1
+        self.previous = 0
